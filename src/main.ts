@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { join } from 'path'; // <-- ADDED: Import the 'join' function for path manipulation
 
 // This will cache the server instance for Vercel's warm starts, improving performance.
 let cachedServer: Express;
@@ -23,6 +24,10 @@ function configureCommonAppSettings(
   app: NestExpressApplication,
   envSuffix: string = '',
 ) {
+  // <-- ADDED: Tell the app to serve static files from the 'public' directory
+  // This is necessary for files like favicon.ico
+  app.useStaticAssets(join(__dirname, '..', 'public'));
+
   // Enable CORS - adjust origin as needed for your production frontend
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
