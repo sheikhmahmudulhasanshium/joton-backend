@@ -22,7 +22,8 @@ function configureCommonAppSettings(
   });
 
   const swaggerDocConfig = new DocumentBuilder()
-    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim())
+    // --- THE LITMUS TEST CHANGE IS HERE ---
+    .setTitle(`VERSION TEST Joton Backend ${envSuffix}`.trim())
     .setDescription('Healthcare with care')
     .setVersion('1.0')
     .addTag('cats')
@@ -30,7 +31,8 @@ function configureCommonAppSettings(
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
   const customSwaggerOptions: SwaggerCustomOptions = {
-    customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
+    // --- AND HERE ---
+    customSiteTitle: `VERSION TEST Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
     customCssUrl:
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
@@ -55,9 +57,7 @@ function configureCommonAppSettings(
   };
 
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
-
   app.use(helmet());
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
