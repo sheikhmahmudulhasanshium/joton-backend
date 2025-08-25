@@ -1,11 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as swaggerUi from 'swagger-ui-express';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerCustomOptions,
+} from '@nestjs/swagger';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { Express, Request, Response, Application } from 'express'; // <-- IMPORT Application type
+import { Express } from 'express';
 
 let cachedServer: Express;
 
@@ -19,32 +22,24 @@ function configureCommonAppSettings(
   });
 
   const swaggerDocConfig = new DocumentBuilder()
-    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim())
+    // --- THE LITMUS TEST CHANGE IS HERE ---
+    .setTitle(`VERSION TEST Joton Backend ${envSuffix}`.trim())
     .setDescription('Healthcare with care')
     .setVersion('1.0')
     .addTag('cats')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  // --- THIS IS THE TYPE-SAFE FIX ---
-  // We get the raw instance from the adapter (which is typed as 'any').
-  const rawExpressApp = app.getHttpAdapter().getInstance();
-  // Then, we explicitly tell TypeScript that this is a valid Express Application.
-  // This is a safe cast and satisfies both the compiler and the linter.
-  const expressApp: Application = rawExpressApp;
-
-  expressApp.get('/api-json', (req: Request, res: Response) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(document);
-  });
-  // ------------------------------------
-
-  const swaggerUiOptions = {
-    customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
+  const customSwaggerOptions: SwaggerCustomOptions = {
+    // --- AND HERE ---
+    customSiteTitle: `VERSION TEST Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
-    swaggerOptions: {
-      url: '/api-json',
-    },
+    customCssUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
+    ],
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -54,10 +49,14 @@ function configureCommonAppSettings(
       .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #a93a3a; }
       .swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #FFB27C; opacity: 0.7; }
     `,
+    swaggerOptions: {
+      docExpansion: 'list',
+      filter: true,
+      showRequestDuration: true,
+    },
   };
 
-  app.use('/api', swaggerUi.serve, swaggerUi.setup(null, swaggerUiOptions));
-
+  SwaggerModule.setup('api', app, document, customSwaggerOptions);
   app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -68,7 +67,6 @@ function configureCommonAppSettings(
   );
 }
 
-// ... The rest of the file is unchanged ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
