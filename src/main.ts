@@ -5,7 +5,7 @@ import * as swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { Express, Request, Response } from 'express'; // <-- IMPORT Request and Response
+import { Express, Request, Response, Application } from 'express'; // <-- IMPORT Application type
 
 let cachedServer: Express;
 
@@ -18,7 +18,6 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
-  // --- STEP 1: Generate the Swagger Document Object ---
   const swaggerDocConfig = new DocumentBuilder()
     .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim())
     .setDescription('Healthcare with care')
@@ -27,20 +26,24 @@ function configureCommonAppSettings(
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  // --- STEP 2: Create a DEDICATED endpoint to serve the JSON document ---
-  // THIS IS THE FIX: We get the underlying Express instance to define the route.
-  const expressApp = app.getHttpAdapter().getInstance();
+  // --- THIS IS THE TYPE-SAFE FIX ---
+  // We get the raw instance from the adapter (which is typed as 'any').
+  const rawExpressApp = app.getHttpAdapter().getInstance();
+  // Then, we explicitly tell TypeScript that this is a valid Express Application.
+  // This is a safe cast and satisfies both the compiler and the linter.
+  const expressApp: Application = rawExpressApp;
+
   expressApp.get('/api-json', (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(document);
   });
+  // ------------------------------------
 
-  // --- STEP 3: Configure the Swagger UI to FETCH the JSON from our endpoint ---
   const swaggerUiOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
     swaggerOptions: {
-      url: '/api-json', // Tell the UI where to get its data
+      url: '/api-json',
     },
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
@@ -55,7 +58,6 @@ function configureCommonAppSettings(
 
   app.use('/api', swaggerUi.serve, swaggerUi.setup(null, swaggerUiOptions));
 
-  // --- The rest of the configuration is the same ---
   app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -66,7 +68,7 @@ function configureCommonAppSettings(
   );
 }
 
-// ... The rest of the file remains unchanged ...
+// ... The rest of the file is unchanged ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
