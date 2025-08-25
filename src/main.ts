@@ -32,24 +32,19 @@ function configureCommonAppSettings(
   const customSwaggerOptions: SwaggerCustomOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
-
-    // --- THIS IS THE FIX ---
-    // Tell Swagger UI to load its CSS and JS from a reliable CDN
     customCssUrl:
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
     customJs: [
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
     ],
-    // ----------------------
-
     customCss: `
-      .swagger-ui .topbar { background-color: #2E3B4E; } /* Dark/Slate */
+      .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
-      .swagger-ui .opblock.opblock-get .opblock-summary-method { background: #4CBCCC; } /* Teal/Primary */
-      .swagger-ui .opblock.opblock-post .opblock-summary-method { background: #3A6AA9; } /* Secondary */
-      .swagger-ui .opblock.opblock-put .opblock-summary-method { background: #FFB27C; } /* Warm */
-      .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #a93a3a; } /* A complementary red for delete */
+      .swagger-ui .opblock.opblock-get .opblock-summary-method { background: #4CBCCC; }
+      .swagger-ui .opblock.opblock-post .opblock-summary-method { background: #3A6AA9; }
+      .swagger-ui .opblock.opblock-put .opblock-summary-method { background: #FFB27C; }
+      .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #a93a3a; }
       .swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #FFB27C; opacity: 0.7; }
     `,
     swaggerOptions: {
@@ -72,7 +67,6 @@ function configureCommonAppSettings(
   );
 }
 
-// ... The rest of the file is unchanged and correct ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
