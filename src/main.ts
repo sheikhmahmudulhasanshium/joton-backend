@@ -1,10 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import {
-  SwaggerModule,
-  DocumentBuilder,
-  SwaggerCustomOptions,
-} from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -21,25 +18,19 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
+  // --- STEP 1: Generate the Swagger Document ---
   const swaggerDocConfig = new DocumentBuilder()
-    // --- THE LITMUS TEST CHANGE IS HERE ---
-    .setTitle(`VERSION TEST Joton Backend ${envSuffix}`.trim())
+    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim()) // <-- TITLE FIXED
     .setDescription('Healthcare with care')
     .setVersion('1.0')
     .addTag('cats')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  const customSwaggerOptions: SwaggerCustomOptions = {
-    // --- AND HERE ---
-    customSiteTitle: `VERSION TEST Joton API Docs ${envSuffix}`.trim(),
+  // --- STEP 2: Manually Set Up the UI with swagger-ui-express ---
+  const swaggerUiOptions = {
+    customSiteTitle: `Joton API Docs ${envSuffix}`.trim(), // <-- TITLE FIXED
     customfavIcon: '/favicon.ico',
-    customCssUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
-    ],
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -49,14 +40,11 @@ function configureCommonAppSettings(
       .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #a93a3a; }
       .swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #FFB27C; opacity: 0.7; }
     `,
-    swaggerOptions: {
-      docExpansion: 'list',
-      filter: true,
-      showRequestDuration: true,
-    },
   };
 
-  SwaggerModule.setup('api', app, document, customSwaggerOptions);
+  app.use('/api', swaggerUi.serve, swaggerUi.setup(document, swaggerUiOptions));
+
+  // --- The rest of the configuration is the same ---
   app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -67,6 +55,7 @@ function configureCommonAppSettings(
   );
 }
 
+// ... The rest of the file remains exactly the same ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
