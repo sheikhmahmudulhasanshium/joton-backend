@@ -5,7 +5,7 @@ import * as swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { Express } from 'express';
+import { Express, Request, Response } from 'express'; // <-- IMPORT Request and Response
 
 let cachedServer: Express;
 
@@ -18,31 +18,30 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
-  // STEP 1: Generate the Swagger Document
+  // --- STEP 1: Generate the Swagger Document Object ---
   const swaggerDocConfig = new DocumentBuilder()
-    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim()) // Titles are clean now
+    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim())
     .setDescription('Healthcare with care')
     .setVersion('1.0')
     .addTag('cats')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  // STEP 2: Manually Set Up the UI with swagger-ui-express AND CDN links
+  // --- STEP 2: Create a DEDICATED endpoint to serve the JSON document ---
+  // THIS IS THE FIX: We get the underlying Express instance to define the route.
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.get('/api-json', (req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(document);
+  });
+
+  // --- STEP 3: Configure the Swagger UI to FETCH the JSON from our endpoint ---
   const swaggerUiOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
-
-    // --- THIS IS THE DEFINITIVE FIX ---
-    // We provide the CDN URLs directly to the UI renderer.
-    // This stops it from trying to load JS/CSS from our own broken server route.
-    customCssUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
-    ],
-    // ------------------------------------
-
+    swaggerOptions: {
+      url: '/api-json', // Tell the UI where to get its data
+    },
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -54,10 +53,9 @@ function configureCommonAppSettings(
     `,
   };
 
-  // The `swaggerUi.serve` is still needed for some internal routing.
-  app.use('/api', swaggerUi.serve, swaggerUi.setup(document, swaggerUiOptions));
+  app.use('/api', swaggerUi.serve, swaggerUi.setup(null, swaggerUiOptions));
 
-  // The rest of the configuration is the same
+  // --- The rest of the configuration is the same ---
   app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -68,7 +66,7 @@ function configureCommonAppSettings(
   );
 }
 
-// ... The rest of the file remains exactly the same ...
+// ... The rest of the file remains unchanged ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
