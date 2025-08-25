@@ -1,0 +1,186 @@
+======================================================================
+UPDATED & EXPANDED MONGODB SCHEMA FOR HOSPITAL MANAGEMENT SYSTEM (HMS)
+======================================================================
+
+---
+Rationale:
+This schema is designed to be efficient and scalable for your full project vision. It uses a single `users` collection for authentication to avoid data duplication. It consolidates staff roles into a single `staff_profiles` collection and adds new collections to support advanced features like a payment portal, todos, and content management.
+---
+
+-----------------------------------
+|   CORE COLLECTIONS (MVP)        |
+-----------------------------------
+
+// Collection 1: users
+// Purpose: The single source of truth for ALL login-capable entities.
+// Handles authentication and primary roles.
+collection: users
+{
+  _id: ObjectId,
+  email: String,          // Unique, for local login
+  password: String,       // Hashed password
+  googleId: String,       // For Google OAuth users
+  role: String,           // Enum: ['ADMIN', 'DOCTOR', 'PATIENT', 'NURSE'] 
+                          // NOTE: This can be expanded later. We start simple for the MVP.
+  isActive: Boolean,      // To disable accounts
+  createdAt: Date,
+  updatedAt: Date
+}
+
+// Collection 2: staff_profiles
+// Purpose: Stores professional data for employees. Links to a user account.
+collection: staff_profiles
+{
+  _id: ObjectId,
+  userId: ObjectId,       // Reference to the `users` collection _id
+  firstName: String,
+  lastName: String,
+  staffType: String,      // Enum: ['DOCTOR', 'NURSE', 'ADMIN', 'HR', 'MANAGEMENT']
+                          // NOTE: Your list of roles (intern, etc.) can be added here.
+  departmentId: ObjectId, // Reference to the `departments` collection _id
+  specialization: String, // e.g., "Cardiology" (mainly for doctors)
+  contactPhone: String,
+  createdAt: Date
+}
+
+// Collection 3: patient_profiles
+// Purpose: Stores personal and medical data for patients. Links to a user account.
+collection: patient_profiles
+{
+  _id: ObjectId,
+  userId: ObjectId,       // Reference to the `users` collection _id
+  firstName: String,
+  lastName: String,
+  dateOfBirth: Date,
+  bloodType: String,      // e.g., "O+", "AB-"
+  contactPhone: String,
+  address: Object,
+  emergencyContact: Object,
+  createdAt: Date
+}
+
+// Collection 4: appointments
+// Purpose: Manages all appointment scheduling. This will power the calendar view.
+collection: appointments
+{
+  _id: ObjectId,
+  patientId: ObjectId,    // Reference to a `users` document with role 'PATIENT'
+  doctorId: ObjectId,     // Reference to a `users` document with role 'DOCTOR'
+  startTime: Date,
+  endTime: Date,
+  reason: String,         // Reason for the visit
+  status: String,         // Enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
+  notes: String           // Optional notes from doctor or patient
+}
+
+
+---------------------------------------------------
+|   STANDARD & ADVANCED TIER COLLECTIONS          |
+---------------------------------------------------
+
+// Collection 5: departments
+// Purpose: Manages hospital departments.
+collection: departments
+{
+  _id: ObjectId,
+  name: String,           // e.g., "Cardiology", "Neurology"
+  description: String,
+  headOfDepartment: ObjectId // Reference to a `users` document with role 'DOCTOR'
+}
+
+// Collection 6: inventory
+// Purpose: A unified collection for pharmacy, blood bank, and other supplies.
+collection: inventory
+{
+  _id: ObjectId,
+  itemName: String,       // e.g., "Aspirin 500mg", "O+ Blood Bag"
+  itemType: String,       // Enum: ['PHARMACY', 'BLOOD_BANK', 'GENERAL_SUPPLIES']
+  quantity: Number,
+  location: String,       // e.g., "Pharmacy Shelf A", "Blood Bank Fridge 2"
+  expiryDate: Date,
+  supplier: String
+}
+
+// Collection 7: notifications
+// Purpose: Stores records for in-app and email notifications.
+collection: notifications
+{
+  _id: ObjectId,
+  recipientId: ObjectId,  // Reference to the `users` collection _id
+  title: String,
+  message: String,
+  isRead: Boolean,        // Default: false
+  type: String,           // e.g., 'APPOINTMENT_CONFIRMED', 'NEW_ANNOUNCEMENT'
+  createdAt: Date
+}
+
+// Collection 8: announcements
+// Purpose: Stores announcements created by Admins for all users.
+collection: announcements
+{
+  _id: ObjectId,
+  authorId: ObjectId,     // Reference to a `users` document with role 'ADMIN'
+  title: String,
+  content: String,
+  createdAt: Date
+}
+
+// Collection 9: todos (NEW)
+// Purpose: To manage user-specific tasks and to-do lists.
+collection: todos
+{
+  _id: ObjectId,
+  userId: ObjectId,       // Reference to the `users` collection _id
+  task: String,
+  isCompleted: Boolean,   // Default: false
+  dueDate: Date,          // Optional
+  createdAt: Date
+}
+
+// Collection 10: invoices (NEW)
+// Purpose: To support the mock payment portal feature by generating invoices.
+collection: invoices
+{
+  _id: ObjectId,
+  patientId: ObjectId,    // Reference to a `users` document with role 'PATIENT'
+  appointmentId: ObjectId,// Reference to the `appointments` collection _id
+  amount: Number,
+  status: String,         // Enum: ['PENDING', 'PAID', 'OVERDUE']
+  items: [
+    {
+      description: String, // e.g., "Consultation Fee", "Lab Test"
+      cost: Number
+    }
+  ],
+  issuedDate: Date,
+  dueDate: Date
+}
+
+// Collection 11: site_content (NEW)
+// Purpose: A flexible collection for managing static pages like FAQs, T&C, etc.
+collection: site_content
+{
+  _id: ObjectId,
+  slug: String,           // Unique identifier e.g., "faq", "terms-and-conditions"
+  title: String,          // "Frequently Asked Questions"
+  content: String         // Can be Markdown or HTML content
+}
+
+
+======================================================================
+SCHEMA GUIDE & RATIONALE FOR NEW FEATURES
+======================================================================
+
+This updated schema now supports your expanded feature list:
+
+-   **User Roles (`admin, hr, management...`):** To keep the MVP manageable, the core `role` on the `users` collection is simple. More specific job titles like 'HR' and 'MANAGEMENT' are placed in the `staff_profiles` collection under `staffType`. This provides flexibility without overcomplicating the core authentication system.
+
+-   **Calendar:** The `appointments` collection is designed to directly power a calendar view (e.g., using `react-big-calendar`).
+
+-   **Todos:** A new `todos` collection is added to allow each authenticated user to manage their own personal task list.
+
+-   **Payment Portal:** A new `invoices` collection provides the necessary structure to generate bills, track payment status, and build your mock payment portal.
+
+-   **FAQs, T&C, P&P:** A new `site_content` collection allows an Admin to manage the content of these pages from a dashboard instead of hardcoding them in the frontend. This is a more professional and scalable approach.
+
+-   **Inventory (Blood Bank, Pharmacy):** This is handled by the unified `inventory` collection using the `itemType` field.
