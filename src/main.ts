@@ -18,19 +18,31 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
-  // --- STEP 1: Generate the Swagger Document ---
+  // STEP 1: Generate the Swagger Document
   const swaggerDocConfig = new DocumentBuilder()
-    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim()) // <-- TITLE FIXED
+    .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim()) // Titles are clean now
     .setDescription('Healthcare with care')
     .setVersion('1.0')
     .addTag('cats')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  // --- STEP 2: Manually Set Up the UI with swagger-ui-express ---
+  // STEP 2: Manually Set Up the UI with swagger-ui-express AND CDN links
   const swaggerUiOptions = {
-    customSiteTitle: `Joton API Docs ${envSuffix}`.trim(), // <-- TITLE FIXED
+    customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
+
+    // --- THIS IS THE DEFINITIVE FIX ---
+    // We provide the CDN URLs directly to the UI renderer.
+    // This stops it from trying to load JS/CSS from our own broken server route.
+    customCssUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
+    ],
+    // ------------------------------------
+
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -42,9 +54,10 @@ function configureCommonAppSettings(
     `,
   };
 
+  // The `swaggerUi.serve` is still needed for some internal routing.
   app.use('/api', swaggerUi.serve, swaggerUi.setup(document, swaggerUiOptions));
 
-  // --- The rest of the configuration is the same ---
+  // The rest of the configuration is the same
   app.use(helmet());
   app.useGlobalPipes(
     new ValidationPipe({
