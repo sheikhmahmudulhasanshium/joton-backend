@@ -10,17 +10,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
 
-// NOTE: We no longer need to import 'join' from 'path' in this file.
-
 let cachedServer: Express;
 
 function configureCommonAppSettings(
   app: NestExpressApplication,
   envSuffix: string = '',
 ) {
-  // REMOVED: The app.useStaticAssets(...) line is no longer needed here.
-  // The ServeStaticModule in app.module.ts now handles this.
-
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
@@ -36,7 +31,18 @@ function configureCommonAppSettings(
 
   const customSwaggerOptions: SwaggerCustomOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
-    customfavIcon: '/favicon.ico', // This line is still very important
+    customfavIcon: '/favicon.ico',
+
+    // --- THIS IS THE FIX ---
+    // Tell Swagger UI to load its CSS and JS from a reliable CDN
+    customCssUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
+    ],
+    // ----------------------
+
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; } /* Dark/Slate */
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -66,7 +72,7 @@ function configureCommonAppSettings(
   );
 }
 
-// ... The rest of this file remains exactly the same ...
+// ... The rest of the file is unchanged and correct ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
