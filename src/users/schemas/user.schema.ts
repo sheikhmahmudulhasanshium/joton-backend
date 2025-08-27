@@ -1,30 +1,31 @@
-// src/users/schemas/user.schema.ts
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import { Role } from 'src/common/enums/role.enum';
 
 export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ required: true, unique: true, trim: true })
+  @Prop({ required: true, unique: true, trim: true, lowercase: true })
   email: string;
 
   @Prop({ required: true })
   password: string;
 
-  @Prop({
-    required: true,
-    enum: ['ADMIN', 'DOCTOR', 'PATIENT', 'NURSE'],
-    default: 'PATIENT',
-  })
-  role: string;
+  @Prop({ type: String, enum: Role, required: true })
+  role: Role;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true })
+  identityId: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: String, required: true, enum: ['Staff', 'Patient'] })
+  identityType: string;
 
   @Prop({ default: true })
   isActive: boolean;
 
   @Prop({ required: false })
-  googleId?: string;
+  hashedRefreshToken?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

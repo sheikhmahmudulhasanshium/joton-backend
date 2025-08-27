@@ -1,64 +1,73 @@
-// src/users/users.service.ts
-
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Schema as MongooseSchema } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto'; // Import this
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
+import { Role } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private configService: ConfigService,
+  ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password,
-      saltRounds,
-    );
+  /**
+   * Creates a new user login account. This is an internal method
+   * called by other services (e.g., StaffService) and not exposed
+   * via a public endpoint.
+   */
+  async createUserAccount(
+    email: string,
+    password: string,
+    role: Role,
+    identityId: MongooseSchema.Types.ObjectId,
+    identityType: 'Staff' | 'Patient',
+  ): Promise<User> {
+    const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
+    const hashedPassword = await bcrypt.hash(password, Number(saltRounds));
+
     const createdUser = new this.userModel({
-      ...createUserDto,
+      email,
       password: hashedPassword,
+      role,
+      identityId,
+      identityType,
     });
     return createdUser.save();
   }
 
-  // R (Read) - Find all users
+  /**
+   * Finds all user accounts.
+   * IMPORTANT: Excludes sensitive fields like password and refresh token.
+   */
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().select('-password -hashedRefreshToken').exec();
   }
 
-  // R (Read) - Find one user by ID
-  async findOne(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
-    if (!user) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
-    return user;
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
-  // U (Update) - Update a user by ID
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    // Note: If the password is being updated, we should hash it.
-    // We will add that logic later to keep this step simple.
-    const existingUser = await this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true }) // {new: true} returns the updated document
-      .exec();
-
-    if (!existingUser) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
-    return existingUser;
+  async findById(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).exec();
   }
 
-  // D (Delete) - Remove a user by ID
-  async remove(id: string): Promise<User> {
-    const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
-    if (!deletedUser) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
+  async updateRefreshToken(userId: string, refreshToken: string | null) {
+    if (refreshToken) {
+      const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
+      const hashedRefreshToken = await bcrypt.hash(
+        refreshToken,
+        Number(saltRounds),
+      );
+      await this.userModel
+        .findByIdAndUpdate(userId, { hashedRefreshToken })
+        .exec();
+    } else {
+      await this.userModel
+        .findByIdAndUpdate(userId, { hashedRefreshToken: null })
+        .exec();
     }
-    return deletedUser;
   }
 }
