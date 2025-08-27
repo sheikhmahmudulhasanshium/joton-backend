@@ -6,33 +6,25 @@ import {
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
 import helmet from 'helmet';
-import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
 
-// This is for caching the app instance in a serverless environment
+// cookie-parser is no longer imported or used here.
+
 let cachedServer: Express;
 
-/**
- * A shared configuration function to apply common settings to the Nest app.
- * This avoids code duplication between local and serverless bootstrap functions.
- * @param app The Nest application instance.
- * @param envSuffix A suffix to add to titles for clarity (e.g., '(Local)').
- */
 function configureCommonAppSettings(
   app: NestExpressApplication,
   envSuffix = '',
 ) {
-  // --- Middleware & Security ---
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
   app.use(helmet());
-  app.use(cookieParser());
+  // The app.use(cookieParser()) line is now gone.
 
-  // --- Global Pipes for Validation ---
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -41,12 +33,12 @@ function configureCommonAppSettings(
     }),
   );
 
-  // --- Swagger (OpenAPI) Documentation ---
+  // ... rest of the Swagger configuration is unchanged ...
   const swaggerDocConfig = new DocumentBuilder()
     .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim())
     .setDescription('Healthcare with hope.')
     .setVersion('1.0')
-    .addTag('Api Endpoints') // You can add more tags as you create more controllers
+    .addTag('Api Endpoints')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
@@ -78,10 +70,7 @@ function configureCommonAppSettings(
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
 }
 
-/**
- * Bootstrap function for serverless environments like Vercel.
- * It creates and caches the app instance for reuse across invocations.
- */
+// ... rest of the file (bootstrap functions) is unchanged ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
@@ -93,10 +82,6 @@ async function bootstrapServerless(): Promise<Express> {
   return cachedServer;
 }
 
-/**
- * Bootstrap function for local development.
- * It creates the app and listens on a specified port.
- */
 async function bootstrapLocal() {
   const localApp = await NestFactory.create<NestExpressApplication>(AppModule);
   configureCommonAppSettings(localApp, '(Local)');
@@ -108,9 +93,6 @@ async function bootstrapLocal() {
   console.log(`📚 Swagger docs available at: http://localhost:${port}/api`);
 }
 
-// --- Logic to determine which bootstrap function to run ---
-
-// If the VERCEL environment variable is NOT set, run the local server.
 if (!process.env.VERCEL) {
   bootstrapLocal().catch((err) => {
     console.error('Error during local bootstrap:', err);
@@ -118,6 +100,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-// If it IS a Vercel environment, export the serverless handler.
-// Vercel will automatically pick this up.
 export default bootstrapServerless();

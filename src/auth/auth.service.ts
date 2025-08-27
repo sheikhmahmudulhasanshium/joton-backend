@@ -3,16 +3,13 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
+import { User } from '../users/schemas/user.schema';
 import {
   JwtAccessPayload,
   JwtRefreshPayload,
 } from 'src/common/interfaces/jwt.interface';
 import { Role } from 'src/common/enums/role.enum';
-import { User } from '../users/schemas/user.schema';
 
-// --- THIS IS THE FIX ---
-// We define our type based on the simple `User` class, not the complex `UserDocument`.
-// This perfectly matches the plain object returned by `.toObject()`.
 export type SanitizedUser = Omit<User, 'password' | 'hashedRefreshToken'> & {
   _id: { toString: () => string };
   identityId: { toString: () => string };
@@ -55,10 +52,12 @@ export class AuthService {
     const refreshTokenPayload: JwtRefreshPayload = { sub: userId };
 
     const [accessToken, refreshToken] = await Promise.all([
+      // --- THIS IS THE FIX ---
       this.jwtService.signAsync(accessTokenPayload, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
         expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME'),
       }),
+      // --- THIS IS THE FIX ---
       this.jwtService.signAsync(refreshTokenPayload, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         expiresIn: this.configService.get<string>(

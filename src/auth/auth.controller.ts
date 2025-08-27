@@ -7,22 +7,19 @@ import {
   UseGuards,
   Get,
 } from '@nestjs/common';
-import { AuthService, SanitizedUser } from './auth.service'; // Import SanitizedUser
+import { AuthService, SanitizedUser } from './auth.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Response } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 import { LoginDto } from './dto/login.dto';
+import { PatientsService } from '../patients/patients.service';
 import { StaffService } from '../staff/staff.service';
 import {
   UserFromJwt,
   UserWithRefreshToken,
 } from 'src/common/interfaces/jwt.interface';
-import { PatientsService } from 'src/patients/patients.service';
 
-// --- THIS IS THE FIX ---
-// The LoginResponse is simply the SanitizedUser type.
-// We are exporting SanitizedUser from auth.service.ts to make it available here.
 type LoginResponse = SanitizedUser;
 
 @Controller('auth')
@@ -39,7 +36,6 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<LoginResponse> {
-    // This promise now correctly matches the return type
     const user = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
@@ -66,7 +62,6 @@ export class AuthController {
       sameSite: 'strict',
     });
 
-    // userPayload is of type SanitizedUser, which now matches LoginResponse
     return userPayload;
   }
 

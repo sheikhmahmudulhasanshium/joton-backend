@@ -8,11 +8,18 @@ import {
   UserFromJwt,
 } from 'src/common/interfaces/jwt.interface';
 
-const cookieExtractor = (req: Request): string | null => {
-  if (req && req.cookies) {
-    return req.cookies['access_token'] as string | null;
+// --- THIS IS OUR MANUAL PARSER ---
+// It reads the raw cookie header and extracts a specific cookie by name.
+const cookieExtractor = (req: Request, cookieName: string): string | null => {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return null;
   }
-  return null;
+  const cookies = cookieHeader.split('; ');
+  const targetCookie = cookies.find((cookie) =>
+    cookie.startsWith(`${cookieName}=`),
+  );
+  return targetCookie ? targetCookie.split('=')[1] : null;
 };
 
 @Injectable()
@@ -27,7 +34,8 @@ export class JwtAccessStrategy extends PassportStrategy(
     }
 
     const strategyOptions: StrategyOptionsWithoutRequest = {
-      jwtFromRequest: cookieExtractor,
+      // Use our manual parser to find the 'access_token'
+      jwtFromRequest: (req: Request) => cookieExtractor(req, 'access_token'),
       ignoreExpiration: false,
       secretOrKey: secret,
     };
