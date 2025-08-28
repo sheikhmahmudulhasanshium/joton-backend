@@ -9,8 +9,8 @@ import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
-
-// cookie-parser is no longer imported or used here.
+// ES Module syntax for importing a CommonJS module
+import * as cookieParser from 'cookie-parser';
 
 let cachedServer: Express;
 
@@ -23,7 +23,7 @@ function configureCommonAppSettings(
     credentials: true,
   });
   app.use(helmet());
-  // The app.use(cookieParser()) line is now gone.
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -33,7 +33,6 @@ function configureCommonAppSettings(
     }),
   );
 
-  // ... rest of the Swagger configuration is unchanged ...
   const swaggerDocConfig = new DocumentBuilder()
     .setTitle(`👨🏻‍⚕️ Joton Backend ${envSuffix}`.trim())
     .setDescription('Healthcare with hope.')
@@ -70,7 +69,6 @@ function configureCommonAppSettings(
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
 }
 
-// ... rest of the file (bootstrap functions) is unchanged ...
 async function bootstrapServerless(): Promise<Express> {
   if (cachedServer) {
     return cachedServer;
