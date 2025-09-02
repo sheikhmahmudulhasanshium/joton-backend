@@ -13,11 +13,11 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { UserFromJwt } from 'src/common/interfaces/jwt.interface';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { Invoice } from './schemas/invoice.schema';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Invoices')
 @ApiBearerAuth()
