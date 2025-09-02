@@ -10,7 +10,6 @@ import {
 import { AuthService, SanitizedUser } from './auth.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Response } from 'express';
-import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh.guard';
 import { LoginDto } from './dto/login.dto';
 import { PatientsService } from '../patients/patients.service';
 import { StaffService } from '../staff/staff.service';
@@ -19,6 +18,7 @@ import {
   UserWithRefreshToken,
 } from 'src/common/interfaces/jwt.interface';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtRefreshGuard } from '../common/guards/jwt-refresh.guard';
 
 type LoginResponse = SanitizedUser;
 
