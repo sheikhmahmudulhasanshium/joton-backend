@@ -10,11 +10,11 @@ import {
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateStaffAdminDto, UpdateStaffDto } from './dto/update-staff.dto';
-import { UserFromJwt } from 'src/common/interfaces/jwt.interface';
+import { UserFromJwt } from '../common/interfaces/jwt.interface';
 import { Role } from '../common/enums/role.enum';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 

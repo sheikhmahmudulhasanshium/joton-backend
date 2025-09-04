@@ -10,12 +10,12 @@ import {
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enums/role.enum';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/enums/role.enum';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { UserFromJwt } from 'src/common/interfaces/jwt.interface';
+import { UserFromJwt } from '../common/interfaces/jwt.interface';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Patients')

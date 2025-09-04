@@ -6,7 +6,7 @@ import { Request } from 'express';
 import {
   JwtRefreshPayload,
   UserWithRefreshToken,
-} from 'src/common/interfaces/jwt.interface';
+} from '../../common/interfaces/jwt.interface';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(

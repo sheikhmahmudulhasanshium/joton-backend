@@ -9,11 +9,11 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enums/role.enum';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/enums/role.enum';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { UserFromJwt } from 'src/common/interfaces/jwt.interface';
+import { UserFromJwt } from '../common/interfaces/jwt.interface';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { Invoice } from './schemas/invoice.schema';

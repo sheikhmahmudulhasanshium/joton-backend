@@ -7,8 +7,8 @@ import { User } from '../users/schemas/user.schema';
 import {
   JwtAccessPayload,
   JwtRefreshPayload,
-} from 'src/common/interfaces/jwt.interface';
-import { Role } from 'src/common/enums/role.enum';
+} from '../common/interfaces/jwt.interface';
+import { Role } from '../common/enums/role.enum';
 
 /**
  * The definitive, clean SanitizedUser type.
