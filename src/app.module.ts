@@ -29,7 +29,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     // This tells NestJS to serve files from the 'public' directory
     // at the root of the project.
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'public'),
+      rootPath: join(__dirname, '..', 'public'),
     }),
 
     // Your feature modules

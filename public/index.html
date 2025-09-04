@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Joton API</title>
+    <!-- TODO: Create a real favicon.ico and place it in the /public folder -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <style>
+        /* --- CSS Variables for Easy Theming --- */
+        :root {
+            --primary-color: #2563eb; /* A strong, professional blue */
+            --primary-hover: #1d4ed8;
+            --text-color-light: #f9fafb;
+            --text-color-dark: #1f2937;
+            --card-bg-color: rgba(255, 255, 255, 0.1); /* Semi-transparent for the glass effect */
+            --border-radius: 12px;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        /* --- General Body & Background Styling --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            
+            /* --- Background Image Styling --- */
+            background-image: url('A welcoming and dive.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: var(--text-color-light);
+            box-sizing: border-box; /* Ensures padding doesn't add to the width/height */
+        }
+
+        /* --- Main Content Card --- */
+        .container {
+            max-width: 650px;
+            width: 100%;
+            padding: 2.5rem 2rem;
+            
+            /* --- The Glassmorphism Effect --- */
+            background: var(--card-bg-color);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: var(--shadow);
+            
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* --- Logo Styling --- */
+        .logo {
+            display: block; /* Makes margin auto work for centering */
+            margin: 0 auto 2rem auto;
+            max-width: 280px; /* Adjust size as needed */
+        }
+        .logo img {
+            width: 100%;
+            height: auto;
+        }
+        
+        /* --- Typography --- */
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem); /* Responsive font size */
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: clamp(1rem, 2.5vw, 1.15rem); /* Responsive font size */
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+        }
+
+        /* --- Action Buttons --- */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-direction: column; /* Stack buttons by default for mobile */
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-color-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* --- Footer --- */
+        footer {
+            position: absolute;
+            bottom: 1rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: var(--text-color-light);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* --- Media Query for Larger Screens --- */
+        /* On screens wider than 600px, place buttons side-by-side */
+        @media (min-width: 600px) {
+            .actions {
+                flex-direction: row; /* Un-stack buttons */
+            }
+            .container {
+                padding: 3rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <a href="https://joton.vercel.app" class="logo" title="Visit Joton Website">
+            <img src="full-lockup-with-tagline.png" alt="Joton Logo with Tagline">
+        </a>
+        
+        <h1>Welcome to the Joton Backend API</h1>
+        
+        <p>This is the engine powering the Joton platform. Explore our main website or dive into the API documentation to get started.</p>
+        
+        <div class="actions">
+            <a href="https://joton.vercel.app" class="btn btn-primary">Visit Website</a>
+            <a href="/api" class="btn btn-secondary">API Documentation</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>
+            &copy; 2024 Joton &bull; 
+            <a href="https://joton.vercel.app/terms">Terms & Conditions</a>
+        </p>
+    </footer>
+
+</body>
+</html>
