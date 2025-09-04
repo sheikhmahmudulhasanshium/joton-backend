@@ -23,7 +23,24 @@ function configureCommonAppSettings(
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
-  app.use(helmet());
+
+  // --- START: MODIFIED HELMET CONFIGURATION ---
+  // Apply Helmet with a customized Content Security Policy (CSP)
+  // This policy allows Swagger UI's locally served scripts and styles to function correctly.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          'img-src': ["'self'", 'data:', 'validator.swagger.io'],
+          'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          'style-src': ["'self'", "'unsafe-inline'"],
+        },
+      },
+    }),
+  );
+  // --- END: MODIFIED HELMET CONFIGURATION ---
+
   app.use(cookieParser());
 
   app.useGlobalPipes(
@@ -42,15 +59,13 @@ function configureCommonAppSettings(
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
+  // --- START: MODIFIED SWAGGER OPTIONS ---
+  // Removed customCssUrl and customJs to let @nestjs/swagger serve its own assets.
+  // This is crucial for fixing MIME type errors in production environments like Vercel.
   const customSwaggerOptions: SwaggerCustomOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
-    customCssUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
-    ],
+    // The customCss string is kept as it injects styles directly.
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -66,6 +81,7 @@ function configureCommonAppSettings(
       showRequestDuration: true,
     },
   };
+  // --- END: MODIFIED SWAGGER OPTIONS ---
 
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
 }
