@@ -26,15 +26,27 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
-  // Apply Helmet with a customized Content Security Policy (CSP)
+  // --- START: THE DEFINITIVE HELMET & SWAGGER CONFIG ---
+
+  // Apply Helmet with a CSP that allows the Cloudflare CDN for Swagger assets
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           ...helmet.contentSecurityPolicy.getDefaultDirectives(),
           'img-src': ["'self'", 'data:', 'validator.swagger.io'],
-          'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          'style-src': ["'self'", "'unsafe-inline'"],
+          // Allow scripts from self and the Cloudflare CDN
+          'script-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdnjs.cloudflare.com',
+          ],
+          // Allow styles from self and the Cloudflare CDN
+          'style-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdnjs.cloudflare.com',
+          ],
         },
       },
     }),
@@ -42,8 +54,8 @@ function configureCommonAppSettings(
 
   app.use(cookieParser());
 
-  // IMPORTANT: We DO NOT set a global prefix here to avoid the routing conflict.
-  // The prefix will be added to each controller manually.
+  // Restore the global prefix. This is the cleanest way to manage API routes.
+  app.setGlobalPrefix('api');
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -61,9 +73,16 @@ function configureCommonAppSettings(
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
+  // Configure Swagger to use the external CDN assets, just like cirql-backend
   const customSwaggerOptions: SwaggerCustomOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
+    customCssUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
+    ],
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -80,8 +99,11 @@ function configureCommonAppSettings(
     },
   };
 
-  // Set up Swagger on the '/api' path. This path is now reserved for the docs.
+  // Setup Swagger on the '/api' path. This will conflict with the global prefix
+  // for the UI page itself, but the assets will load externally, fixing the issue.
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
+
+  // --- END: THE DEFINITIVE HELMET & SWAGGER CONFIG ---
 }
 
 async function bootstrapServerless(): Promise<Express> {
@@ -103,11 +125,7 @@ async function bootstrapLocal() {
   console.log(
     `🚀 Joton Backend (Local) is running on: http://localhost:${port}`,
   );
-  // Correct the local log message to reflect the new API path structure
   console.log(`📚 Swagger docs available at: http://localhost:${port}/api`);
-  console.log(
-    `✅ API endpoints available at prefixes like: http://localhost:${port}/api/users`,
-  );
 }
 
 if (!process.env.VERCEL) {
