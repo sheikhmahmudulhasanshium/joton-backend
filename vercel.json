@@ -8,8 +8,7 @@
         "compiler": "swc",
         "includeFiles": [
           "dist/**",
-          "public/**",
-          "node_modules/**"
+          "public/**"
         ]
       }
     }
