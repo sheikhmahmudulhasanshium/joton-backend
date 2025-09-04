@@ -4,21 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to the Joton API</title>
-    <!-- TODO: Create a real favicon.ico and place it in the /public folder -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <style>
-        /* --- CSS Variables for Easy Theming --- */
         :root {
-            --primary-color: #2563eb; /* A strong, professional blue */
+            --primary-color: #2563eb;
             --primary-hover: #1d4ed8;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
             --text-color-light: #f9fafb;
-            --text-color-dark: #1f2937;
-            --card-bg-color: rgba(255, 255, 255, 0.1); /* Semi-transparent for the glass effect */
+            --card-bg-color: rgba(255, 255, 255, 0.25);
             --border-radius: 12px;
             --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
-        /* --- General Body & Background Styling --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -27,70 +26,66 @@
             justify-content: center;
             align-items: center;
             padding: 1rem;
-            
-            /* --- Background Image Styling --- */
             background-image: url('A welcoming and dive.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             color: var(--text-color-light);
-            box-sizing: border-box; /* Ensures padding doesn't add to the width/height */
+            box-sizing: border-box;
         }
 
-        /* --- Main Content Card --- */
         .container {
-            max-width: 650px;
+            max-width: 580px;
             width: 100%;
-            padding: 2.5rem 2rem;
-            
-            /* --- The Glassmorphism Effect --- */
+            padding: 2rem 1.5rem;
             background: var(--card-bg-color);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: var(--border-radius);
             border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: var(--shadow);
-            
             text-align: center;
             box-sizing: border-box;
         }
 
-        /* --- Logo Styling --- */
         .logo {
-            display: block; /* Makes margin auto work for centering */
+            display: block;
             margin: 0 auto 2rem auto;
-            max-width: 280px; /* Adjust size as needed */
+            max-width: 240px;
         }
         .logo img {
             width: 100%;
             height: auto;
         }
         
-        /* --- Typography --- */
         h1 {
-            font-size: clamp(1.8rem, 5vw, 2.5rem); /* Responsive font size */
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
             margin-top: 0;
             margin-bottom: 1rem;
             font-weight: 700;
+            text-shadow: var(--text-shadow);
         }
-
         p {
-            font-size: clamp(1rem, 2.5vw, 1.15rem); /* Responsive font size */
+            font-size: clamp(1rem, 2.5vw, 1.15rem);
             line-height: 1.6;
             margin-bottom: 2.5rem;
-            opacity: 0.9;
+            opacity: 0.95;
+            text-shadow: var(--text-shadow);
         }
 
-        /* --- Action Buttons --- */
         .actions {
             display: flex;
             gap: 1rem;
             justify-content: center;
-            flex-direction: column; /* Stack buttons by default for mobile */
+            flex-direction: column;
         }
-
+        
+        /* --- START: UPDATED BUTTON STYLES --- */
         .btn {
-            display: inline-block;
+            display: flex; /* Changed to flex for icon alignment */
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem; /* Space between icon and text */
             padding: 14px 28px;
             border-radius: var(--border-radius);
             text-decoration: none;
@@ -100,30 +95,105 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
+            position: relative; /* Needed for some hover effects */
+            overflow: hidden; /* Needed for some hover effects */
+        }
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .btn .icon {
+            width: 20px;
+            height: 20px;
         }
 
+        /* 1. Primary Button: Gradient with a glow hover */
         .btn-primary {
-            background-color: var(--primary-color);
+            background-image: linear-gradient(45deg, #3b82f6 0%, #2563eb 100%);
             color: var(--text-color-light);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(59, 130, 246, 0.4);
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: scale(1.05);
-            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
-        }
-
+        /* 2. Secondary Button: Gradient with a shimmer hover effect */
         .btn-secondary {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-image: linear-gradient(45deg, #10b981 0%, #22c55e 100%);
+            color: var(--text-color-light);
+        }
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+        .btn-secondary:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        /* 3. Tertiary Button: Border gradient with fill-in hover */
+        .btn-tertiary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color-light);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+        .btn-tertiary::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #fb923c 0%, #f97316 100%);
+            border-radius: var(--border-radius);
+            z-index: -1;
+        }
+        .btn-tertiary:hover:not(:disabled) {
+            color: white;
+            background-color: rgba(249, 115, 22, 0.5);
+        }
+        /* --- END: UPDATED BUTTON STYLES --- */
+        
+        .status-container {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        #status-indicator {
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.3s ease;
+            transform: translateY(-20px);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        #status-indicator.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        #status-indicator.success {
+            background-color: var(--success-color);
+            color: var(--text-color-light);
+        }
+        #status-indicator.error {
+            background-color: var(--error-color);
             color: var(--text-color-light);
         }
 
-        .btn-secondary:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-            transform: scale(1.05);
-        }
-
-        /* --- Footer --- */
         footer {
             position: absolute;
             bottom: 1rem;
@@ -131,32 +201,32 @@
             text-align: center;
             font-size: 0.9rem;
             opacity: 0.8;
+            text-shadow: var(--text-shadow);
         }
-
         footer a {
             color: var(--text-color-light);
             text-decoration: none;
             font-weight: 500;
         }
-
         footer a:hover {
             text-decoration: underline;
         }
         
-        /* --- Media Query for Larger Screens --- */
-        /* On screens wider than 600px, place buttons side-by-side */
         @media (min-width: 600px) {
             .actions {
-                flex-direction: row; /* Un-stack buttons */
+                flex-direction: row;
+                flex-wrap: wrap;
             }
             .container {
-                padding: 3rem;
+                padding: 2.5rem;
             }
         }
-
     </style>
 </head>
 <body>
+    <div class="status-container">
+        <span id="status-indicator"></span>
+    </div>
 
     <main class="container">
         <a href="https://joton.vercel.app" class="logo" title="Visit Joton Website">
@@ -168,8 +238,19 @@
         <p>This is the engine powering the Joton platform. Explore our main website or dive into the API documentation to get started.</p>
         
         <div class="actions">
-            <a href="https://joton.vercel.app" class="btn btn-primary">Visit Website</a>
-            <a href="/api" class="btn btn-secondary">API Documentation</a>
+            <!-- UPDATED: Added SVG icons to each button -->
+            <a href="https://joton.vercel.app" class="btn btn-primary">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                Visit Website
+            </a>
+            <a href="/api" class="btn btn-secondary">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 12" /></svg>
+                API Documentation
+            </a>
+            <button id="health-check-btn" class="btn btn-tertiary">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                Check API Health
+            </button>
         </div>
     </main>
 
@@ -180,5 +261,48 @@
         </p>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const healthCheckBtn = document.getElementById('health-check-btn');
+            const statusIndicator = document.getElementById('status-indicator');
+
+            async function checkApiHealth() {
+                healthCheckBtn.disabled = true;
+                healthCheckBtn.innerHTML = `
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                    Checking...`;
+                statusIndicator.classList.remove('success', 'error', 'show');
+
+                try {
+                    const response = await fetch('/api/status');
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.status === 'ok') {
+                        statusIndicator.textContent = 'API Status: OK';
+                        statusIndicator.classList.add('success', 'show');
+                    } else {
+                        throw new Error('Invalid status response');
+                    }
+                } catch (error) {
+                    console.error('Health check failed:', error);
+                    statusIndicator.textContent = 'API Status: Error';
+                    statusIndicator.classList.add('error', 'show');
+                } finally {
+                    setTimeout(() => {
+                        healthCheckBtn.disabled = false;
+                        healthCheckBtn.innerHTML = `
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                            Check API Health`;
+                        statusIndicator.classList.remove('show');
+                    }, 3000);
+                }
+            }
+
+            healthCheckBtn.addEventListener('click', checkApiHealth);
+        });
+    </script>
 </body>
 </html>

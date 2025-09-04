@@ -26,9 +26,9 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
-  // --- START: THE DEFINITIVE HELMET & SWAGGER CONFIG ---
+  // --- START: FINAL HELMET & SWAGGER CONFIGURATION ---
 
-  // Apply Helmet with a CSP that allows the Cloudflare CDN for Swagger assets
+  // Apply Helmet with a complete Content Security Policy (CSP)
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -47,6 +47,9 @@ function configureCommonAppSettings(
             "'unsafe-inline'",
             'https://cdnjs.cloudflare.com',
           ],
+          // OPTIONAL BUT RECOMMENDED: Allow connections to the CDN to fetch source maps (.map files)
+          // This removes the final "Refused to connect" errors from the developer console.
+          'connect-src': ["'self'", 'https://cdnjs.cloudflare.com'],
         },
       },
     }),
@@ -54,7 +57,7 @@ function configureCommonAppSettings(
 
   app.use(cookieParser());
 
-  // Restore the global prefix. This is the cleanest way to manage API routes.
+  // Use a global prefix for clean API route management.
   app.setGlobalPrefix('api');
 
   app.useGlobalPipes(
@@ -73,7 +76,7 @@ function configureCommonAppSettings(
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  // Configure Swagger to use the external CDN assets, just like cirql-backend
+  // Configure Swagger to use the external CDN assets to avoid Vercel routing issues.
   const customSwaggerOptions: SwaggerCustomOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
@@ -99,11 +102,11 @@ function configureCommonAppSettings(
     },
   };
 
-  // Setup Swagger on the '/api' path. This will conflict with the global prefix
-  // for the UI page itself, but the assets will load externally, fixing the issue.
+  // Setup Swagger on the '/api' path. The global prefix handles the API endpoints,
+  // while this handles the UI page itself. The CDN handles the assets.
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
 
-  // --- END: THE DEFINITIVE HELMET & SWAGGER CONFIG ---
+  // --- END: FINAL HELMET & SWAGGER CONFIGURATION ---
 }
 
 async function bootstrapServerless(): Promise<Express> {

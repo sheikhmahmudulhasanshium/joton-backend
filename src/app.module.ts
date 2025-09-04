@@ -3,10 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAccessGuard } from './common/guards/jwt-access.guard';
-
-// --- IMPORT THESE ---
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PatientsModule } from './patients/patients.module';
@@ -24,15 +25,13 @@ import { InvoicesModule } from './invoices/invoices.module';
       }),
       inject: [ConfigService],
     }),
-
-    // --- ADD THIS MODULE ---
-    // This tells NestJS to serve files from the 'public' directory
-    // at the root of the project.
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
-
-    // Your feature modules
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60000, limit: 20 },
+      { name: 'heartbeat', ttl: 60000, limit: 60 }
+    ]),
     UsersModule,
     AuthModule,
     PatientsModule,
@@ -40,11 +39,11 @@ import { InvoicesModule } from './invoices/invoices.module';
     CoreModule,
     InvoicesModule,
   ],
+  controllers: [AppController],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAccessGuard,
-    },
+    AppService,
+    { provide: APP_GUARD, useClass: JwtAccessGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}
