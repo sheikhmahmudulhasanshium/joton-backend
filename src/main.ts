@@ -1,3 +1,5 @@
+// src/main.ts
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
@@ -24,9 +26,7 @@ function configureCommonAppSettings(
     credentials: true,
   });
 
-  // --- START: MODIFIED HELMET CONFIGURATION ---
   // Apply Helmet with a customized Content Security Policy (CSP)
-  // This policy allows Swagger UI's locally served scripts and styles to function correctly.
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -39,9 +39,11 @@ function configureCommonAppSettings(
       },
     }),
   );
-  // --- END: MODIFIED HELMET CONFIGURATION ---
 
   app.use(cookieParser());
+
+  // IMPORTANT: We DO NOT set a global prefix here to avoid the routing conflict.
+  // The prefix will be added to each controller manually.
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -59,13 +61,9 @@ function configureCommonAppSettings(
     .build();
   const document = SwaggerModule.createDocument(app, swaggerDocConfig);
 
-  // --- START: MODIFIED SWAGGER OPTIONS ---
-  // Removed customCssUrl and customJs to let @nestjs/swagger serve its own assets.
-  // This is crucial for fixing MIME type errors in production environments like Vercel.
   const customSwaggerOptions: SwaggerCustomOptions = {
     customSiteTitle: `Joton API Docs ${envSuffix}`.trim(),
     customfavIcon: '/favicon.ico',
-    // The customCss string is kept as it injects styles directly.
     customCss: `
       .swagger-ui .topbar { background-color: #2E3B4E; }
       .swagger-ui .topbar .link { color: #FFFFFF; }
@@ -81,8 +79,8 @@ function configureCommonAppSettings(
       showRequestDuration: true,
     },
   };
-  // --- END: MODIFIED SWAGGER OPTIONS ---
 
+  // Set up Swagger on the '/api' path. This path is now reserved for the docs.
   SwaggerModule.setup('api', app, document, customSwaggerOptions);
 }
 
@@ -105,7 +103,11 @@ async function bootstrapLocal() {
   console.log(
     `🚀 Joton Backend (Local) is running on: http://localhost:${port}`,
   );
+  // Correct the local log message to reflect the new API path structure
   console.log(`📚 Swagger docs available at: http://localhost:${port}/api`);
+  console.log(
+    `✅ API endpoints available at prefixes like: http://localhost:${port}/api/users`,
+  );
 }
 
 if (!process.env.VERCEL) {
