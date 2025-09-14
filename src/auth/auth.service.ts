@@ -1,3 +1,5 @@
+// src/auth/auth.service.ts
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -10,11 +12,6 @@ import {
 } from '../common/interfaces/jwt.interface';
 import { Role } from '../common/enums/role.enum';
 
-/**
- * The definitive, clean SanitizedUser type.
- * It omits sensitive fields and ensures `_id` and `identityId` are simple strings,
- * which makes it much easier to use throughout the application.
- */
 export type SanitizedUser = Omit<
   User,
   'password' | 'hashedRefreshToken' | '_id' | 'identityId' | 'identityType'
@@ -32,10 +29,6 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  /**
-   * Validates user credentials. On success, it returns a fully sanitized user object
-   * with `_id` and `identityId` already converted to strings.
-   */
   async validateUser(
     email: string,
     pass: string,
@@ -49,8 +42,6 @@ export class AuthService {
       const sanitizedUser: SanitizedUser = {
         ...result,
         _id: String(result._id),
-        // FINAL FIX: Disable the linter rule for this specific, known false positive.
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         identityId: String(result.identityId),
         identityType: result.identityType as 'Staff' | 'Patient',
       };
@@ -59,9 +50,6 @@ export class AuthService {
     return null;
   }
 
-  /**
-   * Generates new access and refresh JWTs for a given user payload.
-   */
   async generateTokens(
     userId: string,
     role: Role,
@@ -82,7 +70,6 @@ export class AuthService {
         expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME'),
       }),
       this.jwtService.signAsync(refreshTokenPayload, {
-        // FINAL FIX: Corrected typo from `secretOrKey` back to `secret`.
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         expiresIn: this.configService.get<string>(
           'JWT_REFRESH_EXPIRATION_TIME',
@@ -93,9 +80,6 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  /**
-   * Handles the user login process. Receives a user object that is already sanitized.
-   */
   async login(user: SanitizedUser) {
     const tokens = await this.generateTokens(
       user._id,
@@ -107,16 +91,11 @@ export class AuthService {
     return { ...tokens, user };
   }
 
-  /**
-   * Handles user logout by clearing their stored refresh token from the database.
-   */
+  // This method is no longer called by the controller but remains for potential future use.
   async logout(userId: string): Promise<void> {
     await this.usersService.updateRefreshToken(userId, null);
   }
 
-  /**
-   * Generates new tokens if a valid refresh token is provided.
-   */
   async refreshTokens(userId: string, refreshToken: string) {
     const userDoc = await this.usersService.findById(userId);
 
@@ -139,8 +118,6 @@ export class AuthService {
     const sanitizedUser: SanitizedUser = {
       ...userObject,
       _id: String(userObject._id),
-      // FINAL FIX: Disable the linter rule for this specific, known false positive.
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       identityId: String(userObject.identityId),
       identityType: userObject.identityType as 'Staff' | 'Patient',
     };
@@ -156,6 +133,7 @@ export class AuthService {
       sanitizedUser._id,
       tokens.refreshToken,
     );
+
     return tokens;
   }
 }

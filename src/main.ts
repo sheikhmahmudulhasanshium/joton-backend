@@ -57,8 +57,8 @@ function configureCommonAppSettings(
 
   app.use(cookieParser());
 
-  // Use a global prefix for clean API route management.
-  app.setGlobalPrefix('api');
+  // --- MODIFICATION: Set a versioned global prefix ---
+  app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
     new ValidationPipe({

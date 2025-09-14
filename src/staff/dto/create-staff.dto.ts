@@ -1,8 +1,4 @@
-/**
- * This file defines the Data Transfer Object (DTO) for creating a new staff member.
- * A DTO is an object that defines how the data will be sent over the network.
- * It's used for request body validation and for generating API documentation.
- */
+// src/staff/dto/create-staff.dto.ts
 
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -11,10 +7,30 @@ import {
   IsEmail,
   IsEnum,
   IsPhoneNumber,
+  MinLength,
 } from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
 
 export class CreateStaffDto {
+  @ApiProperty({
+    example: 'jane.smith@hms.com',
+    description:
+      "Staff member's work email, which will be used for their login account",
+    type: String,
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  workEmail: string;
+
+  @ApiProperty({
+    example: 'Password123!',
+    description: 'Initial password for the staff member (min 8 characters).',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  password: string;
+
   @ApiProperty({
     example: 'Jane',
     description: "Staff member's first name",
@@ -34,26 +50,20 @@ export class CreateStaffDto {
   lastName: string;
 
   @ApiProperty({
-    example: 'jane.smith@hms.com',
-    description:
-      "Staff member's work email, which will be used for their login account",
-    type: String,
-  })
-  @IsEmail()
-  @IsNotEmpty()
-  workEmail: string;
-
-  @ApiProperty({
     example: '+8801987654321',
     description: "Staff member's primary contact phone number",
     type: String,
   })
-  @IsPhoneNumber('BD') // Specifies validation for Bangladesh phone numbers
+  // --- THIS IS THE FIX ---
+  // Change IsPhoneNumber(null) to IsPhoneNumber(undefined) to satisfy the type definition.
+  @IsPhoneNumber(undefined, {
+    message: 'A valid international phone number is required.',
+  })
   @IsNotEmpty()
   contactPhone: string;
 
   @ApiProperty({
-    enum: Role, // This tells Swagger to show a dropdown of available roles
+    enum: Role,
     example: Role.DOCTOR,
     description: 'The job title/role of the staff member within the system',
   })

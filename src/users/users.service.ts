@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema as MongooseSchema } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
@@ -13,20 +13,24 @@ export class UsersService {
     private configService: ConfigService,
   ) {}
 
-  /**
-   * Creates a new user login account. This is an internal method
-   * called by other services (e.g., StaffService) and not exposed
-   * via a public endpoint.
-   */
+  async countAllUsers(): Promise<number> {
+    return this.userModel.countDocuments().exec();
+  }
+
   async createUserAccount(
     email: string,
     password: string,
     role: Role,
-    identityId: MongooseSchema.Types.ObjectId,
+    identityId: Types.ObjectId,
     identityType: 'Staff' | 'Patient',
-  ): Promise<User> {
-    const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
-    const hashedPassword = await bcrypt.hash(password, Number(saltRounds));
+  ): Promise<UserDocument> {
+    // --- THIS IS THE FIX ---
+    // 1. Get the value from config service. It might be a string or undefined.
+    const saltRoundsEnv = this.configService.get<string>('BCRYPT_SALT_ROUNDS');
+    // 2. Provide a default value if it's undefined, THEN parse it.
+    const saltRounds = parseInt(saltRoundsEnv || '10', 10);
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const createdUser = new this.userModel({
       email,
@@ -38,10 +42,6 @@ export class UsersService {
     return createdUser.save();
   }
 
-  /**
-   * Finds all user accounts.
-   * IMPORTANT: Excludes sensitive fields like password and refresh token.
-   */
   async findAll(): Promise<User[]> {
     return this.userModel.find().select('-password -hashedRefreshToken').exec();
   }
@@ -55,12 +55,12 @@ export class UsersService {
   }
 
   async updateRefreshToken(userId: string, refreshToken: string | null) {
+    // Also apply the fix here for consistency and safety.
+    const saltRoundsEnv = this.configService.get<string>('BCRYPT_SALT_ROUNDS');
+    const saltRounds = parseInt(saltRoundsEnv || '10', 10);
+
     if (refreshToken) {
-      const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
-      const hashedRefreshToken = await bcrypt.hash(
-        refreshToken,
-        Number(saltRounds),
-      );
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, saltRounds);
       await this.userModel
         .findByIdAndUpdate(userId, { hashedRefreshToken })
         .exec();
@@ -69,5 +69,9 @@ export class UsersService {
         .findByIdAndUpdate(userId, { hashedRefreshToken: null })
         .exec();
     }
+  }
+
+  async deleteUserAccount(userId: string): Promise<void> {
+    await this.userModel.findByIdAndDelete(userId).exec();
   }
 }

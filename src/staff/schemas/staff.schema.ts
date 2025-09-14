@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose'; // --- Use `Types` from mongoose
 import { Role } from '../../common/enums/role.enum';
 
 export type StaffDocument = HydratedDocument<Staff>;
@@ -27,8 +27,9 @@ export class Staff {
   @Prop({ required: true })
   contactPhone: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
-  userId?: MongooseSchema.Types.ObjectId;
+  // --- FIX: Standardize type to Types.ObjectId ---
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
+  userId?: Types.ObjectId;
 }
 
 export const StaffSchema = SchemaFactory.createForClass(Staff);

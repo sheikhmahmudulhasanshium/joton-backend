@@ -71,7 +71,6 @@
             opacity: 0.95;
         }
 
-        /* --- NEW: Style for the link inside the paragraph --- */
         .inline-link {
             color: var(--text-color-light);
             font-weight: 600;
@@ -216,7 +215,6 @@
         
         <h1>Welcome to the Joton Backend API</h1>
         
-        <!-- UPDATE: Paragraph now contains a link with a query parameter -->
         <p>
             This is the engine powering the Joton platform. Before integrating, please review our
             <a href="https://joton.vercel.app/terms?section=api-usage" class="inline-link">API Usage Rules</a>.
@@ -225,7 +223,7 @@
         
         <div class="actions">
             <a href="https://joton.vercel.app" class="btn btn-primary">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 L21 3m0 0h-5.25M21 3v5.25" /></svg>
                 Visit Website
             </a>
             <a href="/api" class="btn btn-secondary">
@@ -247,7 +245,6 @@
     </footer>
 
     <script>
-        // No changes needed in the script.
         document.addEventListener('DOMContentLoaded', () => {
             const healthCheckBtn = document.getElementById('health-check-btn');
             const statusIndicator = document.getElementById('status-indicator');
@@ -260,7 +257,7 @@
                 statusIndicator.classList.remove('success', 'error', 'show');
 
                 try {
-                    const response = await fetch('/api/status');
+                    const response = await fetch('/api/v1/status');
                     if (!response.ok) { throw new Error(`HTTP error! Status: ${response.status}`); }
                     const data = await response.json();
                     if (data.status === 'ok') {

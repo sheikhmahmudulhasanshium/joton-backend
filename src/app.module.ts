@@ -1,3 +1,5 @@
+// src/app.module.ts
+
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,6 +16,7 @@ import { PatientsModule } from './patients/patients.module';
 import { StaffModule } from './staff/staff.module';
 import { CoreModule } from './core/core.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { SystemModule } from './system/system.module';
 
 @Module({
   imports: [
@@ -30,7 +33,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     }),
     ThrottlerModule.forRoot([
       { name: 'default', ttl: 60000, limit: 20 },
-      { name: 'heartbeat', ttl: 60000, limit: 60 }
+      { name: 'heartbeat', ttl: 60000, limit: 60 },
     ]),
     UsersModule,
     AuthModule,
@@ -38,6 +41,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     StaffModule,
     CoreModule,
     InvoicesModule,
+    SystemModule, // --- ADD NEW MODULE HERE ---
   ],
   controllers: [AppController],
   providers: [
