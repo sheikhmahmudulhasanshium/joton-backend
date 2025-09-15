@@ -8,7 +8,7 @@ import { StaffService } from '../staff/staff.service';
 export class SystemService {
   constructor(
     private readonly staffService: StaffService,
-    private readonly configService: ConfigService, // Inject ConfigService
+    private readonly configService: ConfigService,
   ) {}
 
   async getSystemStatus(): Promise<{ staffCount: number }> {
@@ -16,12 +16,6 @@ export class SystemService {
     return { staffCount };
   }
 
-  // --- NEW METHOD ---
-  /**
-   * Provides the admin registration secret ONLY if the system has not been set up yet.
-   * Throws a ForbiddenException if a staff member already exists.
-   * @returns The setup token if the system is new.
-   */
   async getSetupToken(): Promise<{ secret: string }> {
     const staffCount = await this.staffService.countAllStaff();
     if (staffCount > 0) {

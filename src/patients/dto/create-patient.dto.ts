@@ -1,10 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger'; // --- IMPORT THIS ---
+// src/patients/dto/create-patient.dto.ts
+
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
   IsDateString,
   IsOptional,
   IsPhoneNumber,
+  IsBoolean, // <-- IMPORT IsBoolean
 } from 'class-validator';
 
 export class CreatePatientDto {
@@ -35,16 +38,45 @@ export class CreatePatientDto {
     example: '+8801712345678',
     description: "Patient's contact phone number (including country code)",
   })
-  @IsPhoneNumber('BD') // Example for Bangladesh phone number validation
+  @IsPhoneNumber(undefined, {
+    message: 'A valid international phone number is required.',
+  })
   @IsNotEmpty()
   contactPhone: string;
 
   @ApiProperty({
-    required: false, // --- Marks this as optional in Swagger ---
+    required: false,
     example: 'O+',
     description: "Patient's blood group (optional)",
   })
   @IsString()
   @IsOptional()
   bloodGroup?: string;
+
+  // --- ADD THESE NEW OPTIONAL DTO PROPERTIES ---
+  @ApiProperty({
+    required: false,
+    description: 'Indicates if the patient is a relative of a staff member.',
+  })
+  @IsBoolean()
+  @IsOptional()
+  isStaffRelative?: boolean;
+
+  @ApiProperty({
+    required: false,
+    description: 'The Staff ID of the related staff member.',
+    example: 'EMP-00001',
+  })
+  @IsString()
+  @IsOptional()
+  staffId?: string;
+
+  @ApiProperty({
+    required: false,
+    description: "The patient's relation to the staff member.",
+    example: 'Spouse',
+  })
+  @IsString()
+  @IsOptional()
+  relation?: string;
 }

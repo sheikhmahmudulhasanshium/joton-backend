@@ -1,3 +1,5 @@
+// src/patients/schemas/patient.schema.ts
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
@@ -6,7 +8,7 @@ export type PatientDocument = HydratedDocument<Patient>;
 @Schema({ timestamps: true })
 export class Patient {
   @Prop({ required: true, unique: true })
-  patientId: string; // Human-readable ID
+  patientId: string;
 
   @Prop({ required: true })
   firstName: string;
@@ -27,7 +29,17 @@ export class Patient {
   contactPhone: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
-  userId?: MongooseSchema.Types.ObjectId; // Link to a login account, if one exists
+  userId?: MongooseSchema.Types.ObjectId;
+
+  // --- ADD THESE NEW OPTIONAL FIELDS ---
+  @Prop({ required: false })
+  isStaffRelative?: boolean;
+
+  @Prop({ required: false })
+  staffId?: string; // The human-readable ID of the related staff member
+
+  @Prop({ required: false })
+  relation?: string; // e.g., "Self", "Spouse", "Son"
 }
 
 export const PatientSchema = SchemaFactory.createForClass(Patient);

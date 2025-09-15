@@ -1,3 +1,5 @@
+// src/staff/staff.service.ts
+
 import {
   Injectable,
   NotFoundException,
@@ -22,13 +24,19 @@ export class StaffService {
     private usersService: UsersService,
   ) {}
 
-  // --- THIS IS THE ONLY NEW METHOD TO ADD ---
-  /**
-   * Finds a staff member by their work email.
-   * This is used to prevent duplicate account creation.
-   */
   async findByEmail(email: string): Promise<StaffDocument | null> {
     return this.staffModel.findOne({ workEmail: email }).exec();
+  }
+
+  async findByStaffId(staffId: string): Promise<Staff> {
+    const staff = await this.staffModel
+      .findOne({ staffId })
+      .select('firstName lastName contactPhone')
+      .exec();
+    if (!staff) {
+      throw new NotFoundException(`Staff with Staff ID ${staffId} not found.`);
+    }
+    return staff;
   }
 
   async searchByName(searchStaffDto: SearchStaffDto): Promise<{
@@ -60,8 +68,6 @@ export class StaffService {
   }
 
   async createNewStaff(createStaffDto: CreateStaffDto): Promise<Staff> {
-    // This check is slightly redundant now that the controller checks first,
-    // but it provides an extra layer of safety.
     const existingStaff = await this.findByEmail(createStaffDto.workEmail);
     if (existingStaff) {
       throw new ConflictException(
@@ -69,7 +75,6 @@ export class StaffService {
       );
     }
 
-    // We also check the users table directly for safety.
     const existingUser = await this.usersService.findByEmail(
       createStaffDto.workEmail,
     );
@@ -91,8 +96,6 @@ export class StaffService {
       contactPhone: createStaffDto.contactPhone,
     });
 
-    // The try/catch block is crucial. If creating the user account fails,
-    // we must delete the staff profile we just created to avoid orphaned data.
     try {
       await newStaffProfile.save();
 
@@ -109,9 +112,7 @@ export class StaffService {
 
       return newStaffProfile;
     } catch (error) {
-      // Cleanup: If any part of the process fails after saving the profile, delete it.
       await this.staffModel.findByIdAndDelete(newStaffProfile._id).exec();
-      // Re-throw the original error to be handled by NestJS's exception layer.
       throw error;
     }
   }
@@ -153,6 +154,7 @@ export class StaffService {
     }
     return existingStaff;
   }
+
   async countAllStaff(): Promise<number> {
     return this.staffModel.countDocuments().exec();
   }

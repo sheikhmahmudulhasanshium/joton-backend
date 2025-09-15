@@ -54,8 +54,6 @@ export class CreateStaffDto {
     description: "Staff member's primary contact phone number",
     type: String,
   })
-  // --- THIS IS THE FIX ---
-  // Change IsPhoneNumber(null) to IsPhoneNumber(undefined) to satisfy the type definition.
   @IsPhoneNumber(undefined, {
     message: 'A valid international phone number is required.',
   })

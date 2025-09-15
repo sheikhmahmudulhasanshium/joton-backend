@@ -26,7 +26,6 @@ export class SystemController {
     return this.systemService.getSystemStatus();
   }
 
-  // --- NEW ENDPOINT ---
   @Get('setup-token')
   @Public()
   @ApiOperation({

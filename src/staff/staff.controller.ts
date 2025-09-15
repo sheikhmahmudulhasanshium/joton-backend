@@ -1,3 +1,5 @@
+// src/staff/staff.controller.ts
+
 import {
   Controller,
   Post,
@@ -21,20 +23,20 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiQuery,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { UpdateStaffAdminDto, UpdateStaffDto } from './dto/update-staff.dto';
 import { UserFromJwt } from '../common/interfaces/jwt.interface';
 import { Role } from '../common/enums/role.enum';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { SearchStaffDto } from './dto/search-staff.dto';
-import { Public } from 'src/common/decorators/public.decorator'; // <-- IMPORT
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('Staff')
 @Controller('staff')
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
-  // --- ADD THIS NEW PUBLIC ENDPOINT ---
   @Get('count')
   @Public()
   @ApiOperation({
@@ -46,7 +48,6 @@ export class StaffController {
     const count = await this.staffService.countAllStaff();
     return { count };
   }
-  // --- END OF NEW ENDPOINT ---
 
   @Post()
   @UseGuards(RolesGuard)
@@ -81,6 +82,19 @@ export class StaffController {
   })
   search(@Query() searchStaffDto: SearchStaffDto) {
     return this.staffService.searchByName(searchStaffDto);
+  }
+
+  @Get('search-by-id/:staffId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.OWNER)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Find a staff member by their Staff ID (Admin/Owner only)',
+  })
+  @ApiResponse({ status: 200, description: 'Staff member found.' })
+  @ApiResponse({ status: 404, description: 'Staff member not found.' })
+  findByStaffId(@Param('staffId') staffId: string) {
+    return this.staffService.findByStaffId(staffId);
   }
 
   @Get(':id')
