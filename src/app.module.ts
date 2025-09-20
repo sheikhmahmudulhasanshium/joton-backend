@@ -17,6 +17,7 @@ import { StaffModule } from './staff/staff.module';
 import { CoreModule } from './core/core.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { SystemModule } from './system/system.module';
+import { DepartmentsModule } from './departments/departments.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { SystemModule } from './system/system.module';
     StaffModule,
     CoreModule,
     InvoicesModule,
-    SystemModule, // --- ADD NEW MODULE HERE ---
+    SystemModule,
+    DepartmentsModule, // --- ADD NEW MODULE HERE ---
   ],
   controllers: [AppController],
   providers: [

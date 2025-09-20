@@ -1,10 +1,10 @@
-// src/staff/staff.service.ts
-
 import {
   Injectable,
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -15,6 +15,7 @@ import { UpdateStaffAdminDto, UpdateStaffDto } from './dto/update-staff.dto';
 import { UsersService } from '../users/users.service';
 import { Role } from '../common/enums/role.enum';
 import { SearchStaffDto } from './dto/search-staff.dto';
+import { DepartmentsService } from '../departments/departments.service';
 
 @Injectable()
 export class StaffService {
@@ -22,6 +23,8 @@ export class StaffService {
     @InjectModel(Staff.name) private staffModel: Model<StaffDocument>,
     private coreService: CoreService,
     private usersService: UsersService,
+    @Inject(forwardRef(() => DepartmentsService))
+    private departmentsService: DepartmentsService,
   ) {}
 
   async findByEmail(email: string): Promise<StaffDocument | null> {
@@ -29,10 +32,11 @@ export class StaffService {
   }
 
   async findByStaffId(staffId: string): Promise<Staff> {
-    const staff = await this.staffModel
-      .findOne({ staffId })
-      .select('firstName lastName contactPhone')
-      .exec();
+    // --- THIS IS THE FIX ---
+    // The problematic .select() clause has been removed.
+    // The query will now return the full document, ensuring a reliable match.
+    const staff = await this.staffModel.findOne({ staffId }).exec();
+
     if (!staff) {
       throw new NotFoundException(`Staff with Staff ID ${staffId} not found.`);
     }
@@ -91,7 +95,6 @@ export class StaffService {
       firstName: createStaffDto.firstName,
       lastName: createStaffDto.lastName,
       jobTitle: createStaffDto.jobTitle,
-      department: createStaffDto.department,
       workEmail: createStaffDto.workEmail,
       contactPhone: createStaffDto.contactPhone,
     });
@@ -110,10 +113,31 @@ export class StaffService {
       newStaffProfile.userId = newUserAccount._id;
       await newStaffProfile.save();
 
+      const departmentSlug = createStaffDto.department
+        .toLowerCase()
+        .replace(/\s+/g, '-');
+
+      await this.departmentsService.assignStaff(departmentSlug, {
+        staffMongoId: newStaffProfile._id.toString(),
+        roleInDepartment: createStaffDto.jobTitle,
+      });
+
       return newStaffProfile;
     } catch (error) {
       await this.staffModel.findByIdAndDelete(newStaffProfile._id).exec();
-      throw error;
+
+      if (newStaffProfile.userId) {
+        await this.usersService.deleteUserAccount(
+          newStaffProfile.userId.toString(),
+        );
+      }
+
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(
+        `An unexpected error occurred during staff creation: ${String(error)}`,
+      );
     }
   }
 

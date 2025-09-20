@@ -1,17 +1,16 @@
-// src/staff/dto/search-staff.dto.ts
-
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, IsNotEmpty, IsOptional, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, Min } from 'class-validator';
 
 export class SearchStaffDto {
   @ApiProperty({
     description:
       'The name (or partial name) of the staff member to search for.',
     example: 'Dr. Smith',
+    required: false, // It's good practice to update the Swagger doc too
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional() // --- DEFINITIVE FIX: Changed from @IsNotEmpty() to @IsOptional() ---
   name: string;
 
   @ApiProperty({
