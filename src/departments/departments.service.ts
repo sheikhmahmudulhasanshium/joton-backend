@@ -30,8 +30,42 @@ type PopulatedAssignedStaff = Omit<AssignedStaff, 'staffMemberId'> & {
   staffMemberId: PopulatedStaff;
 };
 
-// Define a type for a Mongoose sub-document with an _id
 type MongooseSubDocument<T> = T & { _id: Types.ObjectId };
+
+/**
+ * Generates a clean, URL-friendly slug from a string.
+ * It prioritizes using the first alphabetic word if it makes sense.
+ * Examples:
+ * 'Nutrition & Dietetics' -> 'nutrition'
+ * 'ENT (Otolaryngology)' -> 'ent'
+ * 'General Medicine' -> 'general-medicine'
+ * @param title The string to slugify.
+ * @returns A sanitized slug string.
+ */
+const generateSlug = (title: string): string => {
+  const sanitizedTitle = title.trim();
+  const firstWordMatch = sanitizedTitle.match(/^([a-zA-Z]+)/);
+
+  // Use the first word if it's a standalone word (like ENT, or Nutrition in 'Nutrition & ...')
+  if (
+    firstWordMatch &&
+    firstWordMatch[1] &&
+    (sanitizedTitle.split(' ').length > 1 || sanitizedTitle.includes('('))
+  ) {
+    const firstWord = firstWordMatch[1].toLowerCase();
+    // A simple heuristic: if the first word is short, it's likely an acronym or primary name.
+    if (firstWord.length <= 10) return firstWord;
+  }
+
+  // Otherwise, create a standard slug from the full title.
+  return sanitizedTitle
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+};
 
 @Injectable()
 export class DepartmentsService {
@@ -41,8 +75,6 @@ export class DepartmentsService {
     @Inject(forwardRef(() => StaffService))
     private staffService: StaffService,
   ) {}
-
-  // PUBLIC METHODS
 
   async findAllPublic() {
     const departments = await this.departmentModel
@@ -144,9 +176,6 @@ export class DepartmentsService {
       });
   }
 
-  // ADMIN METHODS - DEPARTMENT
-
-  // --- THIS IS THE NEW METHOD FOR ADMINS ---
   async findAllAdmin(): Promise<Department[]> {
     return this.departmentModel.find().exec();
   }
@@ -161,11 +190,7 @@ export class DepartmentsService {
       );
     }
 
-    // --- DEFINITIVE FIX APPLIED HERE ---
-    // 1. Manually generate the slug from the title.
-    const slug = createDepartmentDto.title.toLowerCase().replace(/\s+/g, '-');
-
-    // 2. Check if a department with this generated slug already exists.
+    const slug = generateSlug(createDepartmentDto.title);
     const slugExists = await this.departmentModel.findOne({ slug }).exec();
     if (slugExists) {
       throw new ConflictException(
@@ -173,27 +198,59 @@ export class DepartmentsService {
       );
     }
 
-    // 3. Create the new department document, now including the slug.
     const newDepartment = new this.departmentModel({
       ...createDepartmentDto,
-      slug: slug, // Add the generated slug
+      slug: slug,
     });
-
     return newDepartment.save();
   }
 
   async update(
-    slug: string,
+    currentSlug: string,
     updateDepartmentDto: UpdateDepartmentDto,
   ): Promise<Department> {
     const department = await this.departmentModel
-      .findOneAndUpdate({ slug }, updateDepartmentDto, { new: true })
+      .findOne({ slug: currentSlug })
       .exec();
-
     if (!department) {
-      throw new NotFoundException(`Department with slug "${slug}" not found.`);
+      throw new NotFoundException(
+        `Department with slug "${currentSlug}" not found.`,
+      );
     }
-    return department;
+
+    const { slug: newSlugFromDto, ...restOfDto } = updateDepartmentDto;
+
+    if (restOfDto.title && restOfDto.title !== department.title) {
+      const titleExists = await this.departmentModel
+        .findOne({ title: restOfDto.title, _id: { $ne: department._id } })
+        .exec();
+      if (titleExists) {
+        throw new ConflictException(
+          `A department with the title "${restOfDto.title}" already exists.`,
+        );
+      }
+    }
+
+    const finalSlug = newSlugFromDto
+      ? generateSlug(newSlugFromDto)
+      : department.slug;
+    if (finalSlug !== department.slug) {
+      const slugExists = await this.departmentModel
+        .findOne({ _id: { $ne: department._id }, slug: finalSlug })
+        .exec();
+      if (slugExists) {
+        throw new ConflictException(
+          `The slug "${finalSlug}" is already in use by another department.`,
+        );
+      }
+    }
+
+    department.set({
+      ...restOfDto,
+      slug: finalSlug,
+    });
+
+    return department.save();
   }
 
   async delete(slug: string): Promise<void> {
@@ -202,8 +259,6 @@ export class DepartmentsService {
       throw new NotFoundException(`Department with slug "${slug}" not found.`);
     }
   }
-
-  // ADMIN METHODS - STAFF ASSIGNMENT
 
   async assignStaff(
     slug: string,
@@ -255,8 +310,6 @@ export class DepartmentsService {
 
     return department.save();
   }
-
-  // ADMIN METHODS - SLIDES
 
   async addSlide(
     slug: string,
